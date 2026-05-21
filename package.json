@@ -1,0 +1,20 @@
+{
+  "name": "@sparkfinderoven/demo-package",
+  "version": "1.0.0",
+  "description": "Demo package vulnerable to cache poisoning attack",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --outfile=dist/index.js --platform=node",
+    "test": "node dist/index.js",
+    "prepublishOnly": "pnpm run build"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.8"
+  },
+  "keywords": ["demo", "security", "cache-poisoning"],
+  "author": "sparkfinderoven",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

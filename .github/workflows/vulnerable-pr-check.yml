@@ -1,0 +1,60 @@
+name: Vulnerable PR Check (pull_request_target)
+
+# ⚠️ VULNERABLE: Uses pull_request_target with code execution from PR
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+# This workflow runs in the context of the BASE repository
+# Has access to secrets and GITHUB_TOKEN with write permissions
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'  # ⚠️ VULNERABLE: Cache can be poisoned
+      
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-v10-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-v10-
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build package
+        run: pnpm run build
+      
+      - name: Test package
+        run: pnpm run test
+      
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ PR check passed! Build successful.'
+            })

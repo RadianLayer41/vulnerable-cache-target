@@ -1,0 +1,54 @@
+name: Release to npm
+
+# ⚠️ This workflow uses the same cache as pull_request_target
+# If cache is poisoned, malicious code will execute here with full privileges
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write  # ⚠️ OIDC token for npm Trusted Publishing
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-v10-${{ hashFiles('pnpm-lock.yaml') }}  # ⚠️ Same key as PR check
+          restore-keys: |
+            pnpm-v10-
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build package
+        run: pnpm run build
+      
+      - name: Publish to npm (OIDC)
+        run: |
+          echo "⚠️ In real attack: npm publish would execute here with OIDC identity"
+          echo "This would use GitHub OIDC token for Trusted Publishing"
+          echo "No npm token needed - 2FA bypass!"
+          pnpm run test
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
